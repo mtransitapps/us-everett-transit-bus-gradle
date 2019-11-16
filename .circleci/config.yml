@@ -6,7 +6,10 @@ jobs:
     docker:
       - image: circleci/android:api-29
     environment:
+      JAVA_TOOL_OPTIONS: -Xmx3200m
       JVM_OPTS: -Xmx3200m
+      JAVA_OPTS: -Xmx3200m
+      GRADLE_OPTS: -Xmx3200m
       TERM: xterm-256color
     steps:
       - run:
@@ -28,9 +31,6 @@ jobs:
       - restore_cache:
           key: gradle-wrapper-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}
       - run:
-          name: init_cache_key.sh permissions
-          command: sudo chmod +x init_cache_key.sh
-      - run:
           name: Generate gradle cache key
           command: ./init_cache_key.sh
       - restore_cache:
@@ -38,14 +38,8 @@ jobs:
             - gradle-cache-{{ checksum "gradle_cache_key_checksum.txt" }}
             - gradle-cache- # fallback to using the latest cache if no exact match is found
       - run:
-          name: gradlew permissions
-          command: sudo chmod +x ./gradlew
-      - run:
           name: Download Dependencies
-          command: ./gradlew androidDependencies --console=plain
-      - run:
-          name: build.sh permissions
-          command: sudo chmod +x build.sh
+          command: ./gradlew androidDependencies --no-daemon --no-parallel --no-configure-on-demand --max-workers=2 --console=plain
       - run:
           name: Build
           command: ./build.sh
